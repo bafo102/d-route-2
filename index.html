@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="dialog-overlay" hidden></div>
+    <div id="contextmenu-overlay" hidden></div>
+    <div id="header">
+        <div>
+            <button id="pasteBtn" title="Paste codes to create shotcuts"><i class="fa-solid fa-clipboard"></i></button>
+            <button id="copyBtn" title="Copy current data as codes" disabled><i class="fa-solid fa-copy"></i></button>
+            <button id="uploadBtn" title="Upload data from an .xlsx file">
+                <i class="fa-solid fa-upload"></i><input type="file" id="upload" accept=".xlsx">
+            </button>
+            <button id="downloadBtn" title="Download current data as an .xlsx file" disabled><i class="fa-solid fa-download"></i></button>
+            <button id="clearBtn" title="Clear data stored in Chrome" disabled><i class="fa-solid fa-trash-can"></i></button>
+            <button id="settingBtn" title="Edit shortcuts"><i class="fa-solid fa-pen"></i></button>
+        </div>
+    </div>
+    <div id="context-menu" hidden>
+        <div id="edit-item" class="menu-item"><i class="fa-solid fa-pen">&nbsp&nbsp</i>Edit</div>
+        <div id="delete-item" class="menu-item"><i class="fa-solid fa-trash-can">&nbsp&nbsp</i>Delete</div>
+    </div>
+    <div id="dialog" hidden>
+        <div id="dialog-name">Edit dialog</div>
+        <div id="dialog-for-group">
+            <div id="dialog-group-name" class="dialog-label">Group name:</div>
+            <input id="group-name-input" type="text">
+            <div id="dialog-group-bg" class="dialog-label">Group background color:</div>
+            <div id="dialog-group-bg-input" class="color-input">
+                <input id="group-bg-input-color" type="color">
+                <input id="group-bg-input-text" type="text">
+            </div>
+        </div>
+        <div id="dialog-for-shortcut">
+            <div id="dialog-shortcut-name" class="dialog-label">Shortcut name:</div>
+            <input id="shortcut-name-input" type="text">
+            <div id="dialog-link" class="dialog-label">Link to web:</div>
+            <input id="link-input" type="text">
+        </div>
+        <div id="dialog-btn">
+            <button id="dialog-cancel">Cancel</button>
+            <button id="dialog-save">Save</button>
+        </div>
+    </div>
+    <div id="main">
+        <div id="group-1" class="group blank only"><i class="fa-solid fa-folder-plus"></i></div>
+    </div>
+    <script src="xlsx.full.min.js"></script>
+    <script src="jquery-3.7.1.js"></script>
+    <script src="jquery-ui.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
