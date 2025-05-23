@@ -10,7 +10,7 @@
     <div id="dialog-overlay" hidden></div>
     <div id="contextmenu-overlay" hidden></div>
     <div id="header">
-        <div>
+        <div id="data-buttons">
             <button id="pasteBtn" title="Paste codes to create shotcuts"><i class="fa-solid fa-clipboard"></i></button>
             <button id="copyBtn" title="Copy current data as codes" disabled><i class="fa-solid fa-copy"></i></button>
             <button id="uploadBtn" title="Upload data from an .xlsx file">
@@ -18,7 +18,10 @@
             </button>
             <button id="downloadBtn" title="Download current data as an .xlsx file" disabled><i class="fa-solid fa-download"></i></button>
             <button id="clearBtn" title="Clear data stored in Chrome" disabled><i class="fa-solid fa-trash-can"></i></button>
-            <button id="settingBtn" title="Edit shortcuts"><i class="fa-solid fa-pen"></i></button>
+        </div>
+        <div id="edit-buttons">
+            <button id="editBtn" title="Enable edit-shortcut mode"><i class="fa-solid fa-pen"></i></button>
+            <button id="deleteBtn" title="Enable delete-shortcut mode"><i class="fa-solid fa-eraser"></i></button>
         </div>
     </div>
     <div id="context-menu" hidden>

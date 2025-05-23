@@ -13,7 +13,7 @@
     background-color: lightgrey;
     margin-bottom: 2vh;
     display: flex;
-    justify-content: left;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -21,11 +21,18 @@ input[type="file"] {
     display: none; /* Hide the default file input */
 }
 
-#header > div {
-    width: 13vw;
+#data-buttons, #edit-buttons {
     margin-left: calc((100vw - 88vw - 10vh)/2);
     display: flex;
     justify-content: space-between;
+}
+
+#edit-buttons {
+    margin-right: calc((100vw - 88vw - 10vh)/2);
+}
+
+#data-buttons > * + *, #edit-buttons > * + * {
+    margin-left: 0.8vw;
 }
 
 button {
@@ -39,7 +46,7 @@ button {
     cursor: pointer;
 }
 
-button:hover {
+button:hover, button.enabled {
     background-color: #f36584;
 }
 

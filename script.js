@@ -1,6 +1,12 @@
 // VARIABLE INITIALIZATION
+let pasteButton = document.querySelector("#pasteBtn");
+let copyButton = document.querySelector("#copyBtn");
+let downloadButton = document.querySelector("#downloadBtn");
+let clearButton = document.querySelector("#clearBtn");
 let uploadButton = document.querySelector("#uploadBtn");
 let uploadInput = document.querySelector("#upload");
+let editButton = document.querySelector("#editBtn");
+let deleteButton = document.querySelector("#deleteBtn");
 
 let targetElement = '';
 let targetElementType = ''; // shortcut / shortcut blank / group blank / group
@@ -92,7 +98,7 @@ uploadButton.addEventListener('click', invokeUploadInput);
 uploadInput.addEventListener('change', uploadFile);
 
 // COPY CODES
-document.getElementById('copyBtn').addEventListener('click', () => {
+copyButton.addEventListener('click', () => {
     data_time = localStorage.getItem('shortcut_data_time');
     storedCodes = localStorage.getItem('shortcut_data');
     storedCodesJson = JSON.parse(storedCodes);
@@ -102,7 +108,7 @@ document.getElementById('copyBtn').addEventListener('click', () => {
 });
 
 // CLEAR DATA
-document.getElementById('clearBtn').addEventListener('click', () => {
+clearButton.addEventListener('click', () => {
     if (confirm('Clear all data?')) {
         // clear shortcut data
         localStorage.removeItem('shortcut_data');
@@ -226,7 +232,7 @@ function updateCurrentCodes() {
 }
 
 // PASTE CODES
-document.getElementById('pasteBtn').addEventListener('click', () => {
+pasteButton.addEventListener('click', () => {
     codes = prompt('Paste your codes here:');
     if (codes && codes != "null" && codes != null) {
         // store data
@@ -313,7 +319,7 @@ function createShortcut() {
                 }
                 else { // create normal shortcut
                     newShortcut = document.createElement('div');
-                    newShortcut.classList.add("shortcut"); // add class
+                    newShortcut.classList.add("shortcut"); // add class zz
                     shortcutContainer.appendChild(newShortcut); // add shorcut to shortcut-container
 
                     // create a
@@ -451,19 +457,23 @@ function rearrangeGroupIds() {
 function updateHeader() {
     storedCodes = localStorage.getItem('shortcut_data');
     if (!storedCodes) {
-        document.querySelector('#copyBtn').disabled = true;
-        document.querySelector('#downloadBtn').disabled = true;
-        document.querySelector('#clearBtn').disabled = true;
+        copyButton.disabled = true;
+        downloadButton.disabled = true;
+        clearButton.disabled = true;
+        editButton.disabled = true;
+        deleteButton.disabled = true;
     }
     else {
-        document.querySelector('#copyBtn').disabled = false;
-        document.querySelector('#downloadBtn').disabled = false;
-        document.querySelector('#clearBtn').disabled = false;
+        copyButton.disabled = false;
+        downloadButton.disabled = false;
+        clearButton.disabled = false;
+        editButton.disabled = false;
+        deleteButton.disabled = false;
     }
 }
 
 // DOWNLOAD DATA
-document.getElementById('downloadBtn').addEventListener('click', () => {
+downloadButton.addEventListener('click', () => {
     storedCodes = localStorage.getItem('shortcut_data');
     storedCodesJson = JSON.parse(storedCodes);
     // Create a new workbook and a worksheet
@@ -488,6 +498,33 @@ function getFormattedDateAndTime() {
 
     return `${day}-${month}-${year} ${hours}.${minutes}.${seconds}`;
 }
+
+// ENABLE SHORTCUT-EDIT MODE
+editButton.addEventListener('click', () => {
+    // if enabled
+    if (editButton.classList.contains("enabled")) {
+        editButton.classList.remove("enabled");
+        deleteButton.disabled = false;
+    }
+    // if disabled
+    else {
+        editButton.classList.add("enabled");
+        deleteButton.disabled = true;
+    }
+});
+
+// ENABLE SHORTCUT-DELETE MODE
+deleteButton.addEventListener('click', () => {
+    if (deleteButton.classList.contains("enabled")) {
+        deleteButton.classList.remove("enabled");
+        editButton.disabled = false;
+    }
+    else {
+        deleteButton.classList.add("enabled");
+        editButton.disabled = true;
+    }
+});
+
 
 // MAKE SORTABLES
 // group
@@ -564,7 +601,7 @@ function getTarget(event) {
     }
     
     // add class to target
-    targetElement.classList.add("target");
+    // targetElement.classList.add("target");
 
     console.log('targetElement: ',targetElement);
     console.log('targetElementType: ',targetElementType);
@@ -581,18 +618,18 @@ document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem
 
 
 // OPEN CONTEXT MENU
-function openContextMenu(event) {
-    event.preventDefault(); 
+// function openContextMenu(event) {
+    // event.preventDefault(); 
     // show context menu at mouse
-    contextMenu.hidden = false;
-    contextMenu.style.top = event.pageY + "px";
-    contextMenu.style.left = event.pageX + "px";
+    // contextMenu.hidden = false;
+    // contextMenu.style.top = event.pageY + "px";
+    // contextMenu.style.left = event.pageX + "px";
     // show contextmenuOverlay
-    contextmenuOverlay.hidden = false;
-}
+    // contextmenuOverlay.hidden = false;
+// }
 
 // add function openContextMenu to shortcut, shortcut blank, group when right-clicking
-document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", openContextMenu)));
+// document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", openContextMenu)));
 
 // CLOSE CONTEXT MENU
 function closeContextMenu() {
@@ -793,11 +830,24 @@ function saveDialogChanges() {
         targetElement.children[0].href = linkInput.value;
         // set title
         targetElement.children[0].title = shortcutNameInput.value
+        // create icon
+        newIcon = document.createElement('img');
+        // function to get favicon
+        function faviconURL(u) { // https://developer.chrome.com/docs/extensions/how-to/ui/favicons
+            url = new URL(chrome.runtime.getURL("/_favicon/"));
+            url.searchParams.set("pageUrl", u);
+            url.searchParams.set("size", "32");
+            return url.toString();
+        }
+
+        newIcon.src = faviconURL(linkInput.value)
+        newShortcut.appendChild(newIcon); // add a to shortcut
+
         // create shortcut-name
         newShortcutName = document.createElement('div');
         newShortcutName.classList.add("shortcut-name"); // add class
         newShortcutName.textContent = shortcutNameInput.value; // set textContent
-        targetElement.appendChild(newShortcutName); // add shorcut-name to targetElement
+        targetElement.appendChild(newShortcutName); // add shorcut-name to targetElement zz
         // update blank class
         targetElement.classList.remove("blank");
 
@@ -878,7 +928,7 @@ function addAllEventListeners() {
     document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", getTarget)));
 
     // add function openContextMenu to shortcut, shortcut blank, group when right-clicking
-    document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", openContextMenu)));
+    // document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", openContextMenu)));
 
     // add function closeContextMenu to contextmenuOverlay
     contextmenuOverlay.addEventListener('click', closeContextMenu);
