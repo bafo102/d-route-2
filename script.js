@@ -11,12 +11,6 @@ let deleteButton = document.querySelector("#deleteBtn");
 let targetElement = '';
 let targetElementType = ''; // shortcut / shortcut blank / group blank / group
 
-let contextMenu = document.querySelector("#context-menu");
-let contextmenuOverlay = document.querySelector("#contextmenu-overlay");
-
-let editItem = document.querySelector("#edit-item");
-let deleteItem = document.querySelector("#delete-item");
-
 let dialog = document.querySelector("#dialog");
 let dialogOverlay = document.querySelector("#dialog-overlay");
 
@@ -177,8 +171,14 @@ function updateCurrentCodes() {
                 // if shortcut not blank
                 if (!shortcut.classList.contains('blank')) {
                     // shortcutName, link
-                    shortcutName = shortcut.children[2].textContent;
-                    link = shortcut.children[0].href;
+                    if (shortcut.classList.contains('editable') || shortcut.classList.contains('deletable')) { // in edit-shortcut mode
+                        shortcutName = shortcut.children[3].textContent;
+                        link = formatInputLink(shortcut.children[1].href);
+                    }
+                    else { // in normal mode
+                        shortcutName = shortcut.children[2].textContent;
+                        link = formatInputLink(shortcut.children[0].href);
+                    }
                 }
                 else {
                     shortcutName = null;
@@ -305,7 +305,7 @@ function createShortcut() {
                 // re-declare parent div
                 shortcutContainer = mainDiv.querySelector(`#${groupID} .shortcut-container`);
 
-                // create shortcut
+                // create all types of shortcut
                 if (shortcutName == null || link == null) { // create blank shorcut
                     newBlankShortcut = document.createElement('div');
                     newBlankShortcut.classList.add("shortcut"); // add class
@@ -319,12 +319,12 @@ function createShortcut() {
                 }
                 else { // create normal shortcut
                     newShortcut = document.createElement('div');
-                    newShortcut.classList.add("shortcut"); // add class zz
+                    newShortcut.classList.add("shortcut"); // add class
                     shortcutContainer.appendChild(newShortcut); // add shorcut to shortcut-container
 
                     // create a
                     newA = document.createElement('a');
-                    newA.href = link; // set link
+                    newA.href = formatInputLink(link); // set link
                     newA.title = shortcutName; // set title
                     newShortcut.appendChild(newA); // add a to shortcut
 
@@ -423,8 +423,6 @@ function checkAndAddBlanks() {
 
                     // create a
                     newA = document.createElement('a');
-                    // newA.href = ""; // set link
-                    // newA.title = ""; // set title
                     newBlankShortcut.appendChild(newA); // add a to shortcut
                 }
 
@@ -501,27 +499,83 @@ function getFormattedDateAndTime() {
 
 // ENABLE SHORTCUT-EDIT MODE
 editButton.addEventListener('click', () => {
-    // if enabled
-    if (editButton.classList.contains("enabled")) {
-        editButton.classList.remove("enabled");
+    // if activated
+    if (editButton.classList.contains("activated")) {
+        // deactivate the editButton
+        editButton.classList.remove("activated");
+        // update title
+        editButton.title = 'Activate edit-shortcut mode';
+        // enable the deleteButton
         deleteButton.disabled = false;
+        // remove overlays
+        elementsToRemoveEdit = document.querySelectorAll('.editable');
+        for (i = 0; i < elementsToRemoveEdit.length; ++i) {
+            elementToRemoveEdit = elementsToRemoveEdit[i];
+            elementToRemoveEdit.classList.remove('editable');
+
+            elementToRemoveEdit.removeChild(elementToRemoveEdit.firstChild);
+        }
+        addAllEventListeners();
     }
-    // if disabled
+    // if deactivated
     else {
-        editButton.classList.add("enabled");
+        // activate the editButton
+        editButton.classList.add("activated");
+        // update title
+        editButton.title = 'Deactivate edit-shortcut mode';
+        // disable the deleteButton
         deleteButton.disabled = true;
+        // add overlays
+        elementsToEdit = document.querySelectorAll('.group-name:not(.blank), .shortcut:not(.blank)');
+        for (i = 0; i < elementsToEdit.length; ++i) {
+            elementToEdit = elementsToEdit[i];
+            elementToEdit.classList.add('editable');
+
+            editableOverlay = document.createElement('div');
+            editableOverlay.classList.add('editable-overlay');
+            elementToEdit.insertBefore(editableOverlay, elementToEdit.firstChild);
+        }
+        addAllEventListeners();
     }
 });
 
 // ENABLE SHORTCUT-DELETE MODE
 deleteButton.addEventListener('click', () => {
-    if (deleteButton.classList.contains("enabled")) {
-        deleteButton.classList.remove("enabled");
+    if (deleteButton.classList.contains("activated")) {
+        // deactivate the deleteButton
+        deleteButton.classList.remove("activated");
+        // update title
+        deleteButton.title = 'Activate delete-shortcut mode';
+        // enable the editButton
         editButton.disabled = false;
+        // remove overlays
+        elementsToRemoveDelete = document.querySelectorAll('.deletable');
+        for (i = 0; i < elementsToRemoveDelete.length; ++i) {
+            elementToRemoveDelete = elementsToRemoveDelete[i];
+            elementToRemoveDelete.classList.remove('deletable');
+
+            elementToRemoveDelete.removeChild(elementToRemoveDelete.firstChild);
+        }
+        addAllEventListeners();
     }
     else {
-        deleteButton.classList.add("enabled");
+        // activate the deleteButton
+        deleteButton.classList.add("activated");
+        // update title
+        deleteButton.title = 'Deactivate delete-shortcut mode';
+        // disable the editButton
         editButton.disabled = true;
+        // add overlays
+        elementsToDelete = document.querySelectorAll('.group-name, .shortcut');
+        for (i = 0; i < elementsToDelete.length; ++i) {
+            elementToDelete = elementsToDelete[i];
+            elementToDelete.classList.add('deletable');
+
+            deletableOverlay = document.createElement('div');
+            deletableOverlay.classList.add('deletable-overlay');
+            elementToDelete.insertBefore(deletableOverlay, elementToDelete.firstChild);
+        }
+        addAllEventListeners();
     }
 });
 
@@ -563,95 +617,68 @@ $( function() {
 // TARGET ELEMENT
 function getTarget(event) {
     clickedElement = event.target;
-    console.log('clickedElement: ',clickedElement);
-    // if shortcut
+    console.log('clickedElement: ', clickedElement);
+    targetElement = clickedElement.parentNode;
+    console.log('targetElement: ', targetElement);
+
+    // if shortcut (when left-clicking)
     if (clickedElement.tagName == "A" && !clickedElement.parentNode.classList.contains("blank")) {
-        targetElement = clickedElement.parentNode;
         targetElementType = 'shortcut';
     }
 
-    // if shortcut blank
-    else if (clickedElement.className == 'fa-solid fa-plus') { // if clicking on <i> of a blank shortcut
-        targetElement = clickedElement.parentNode;
-        targetElementType = 'shortcut blank';
+    // if shortcut editable (when opening dialog)
+    if (clickedElement.className == 'editable-overlay' && targetElement.classList.contains("shortcut")) {
+        targetElementType = 'shortcut editable';
     }
-    else if (clickedElement.parentNode.classList.contains("shortcut") && clickedElement.parentNode.classList.contains("blank")) {
-        targetElement = clickedElement.parentNode;
+
+    // if shortcut deletable (when opening dialog)
+    if (clickedElement.className == 'deletable-overlay' && targetElement.classList.contains("shortcut")) {
+        targetElementType = 'shortcut deletable';
+    }
+
+    // if shortcut blank (when clicking on <i> of a blank shortcut / when clicking on <a>)
+    else if (clickedElement.className == 'fa-solid fa-plus' || targetElement.className == "shortcut blank") {
         targetElementType = 'shortcut blank';
     }
 
-    // if group blank
-    else if (clickedElement.className == 'fa-solid fa-folder-plus') { // if clicking on <i> of a blank group
-        targetElement = clickedElement.parentNode;
-        targetElementType = 'group blank';
+    // if group-name editable (when opening diaglog)
+    else if (targetElement.classList.contains('group-name') && targetElement.classList.contains('editable')) {
+        targetElementType = 'group editable';
     }
+
+    // if group-name deletable (when deleting)
+    else if (targetElement.classList.contains('group-name') && targetElement.classList.contains('deletable')) {
+        targetElement = targetElement.parentNode;
+        targetElementType = 'group deletable';
+    }
+
+    // if group blank (when clicking on <i> of a blank group / )
+    else if (clickedElement.className == 'fa-solid fa-folder-plus') {
+        targetElementType = 'group blank';
+    } // when clicking on the group blank itself
     else if (clickedElement.className == "group blank" || clickedElement.className == "group blank only") {
         targetElement = clickedElement;
         targetElementType = 'group blank';
     }
-
-    // if group
-    else if (clickedElement.className == 'group') {
-        targetElement = clickedElement;
-        targetElementType = 'group';
-    }
-    else {
-        targetElement = clickedElement.parentNode;
-        targetElementType = 'group';
-    }
     
-    // add class to target
-    // targetElement.classList.add("target");
+    // clear previous target
+    targets = document.querySelectorAll('.target').forEach(target => (target.classList.remove("target")));
+    // add class "target" to target
+    targetElement.classList.add("target");
 
-    console.log('targetElement: ',targetElement);
     console.log('targetElementType: ',targetElementType);
 }
 
-// add function getTarget to shortcut, shortcut blank, group blank when left-clicking
-document.querySelectorAll(".shortcut, .group.blank").forEach(elem => (elem.addEventListener("click", getTarget)));
-
-// add function getTarget to shortcut, shortcut blank, group when right-clicking
-document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", getTarget)));
-
-
-// CONTEXT MENU
-
-
-// OPEN CONTEXT MENU
-// function openContextMenu(event) {
-    // event.preventDefault(); 
-    // show context menu at mouse
-    // contextMenu.hidden = false;
-    // contextMenu.style.top = event.pageY + "px";
-    // contextMenu.style.left = event.pageX + "px";
-    // show contextmenuOverlay
-    // contextmenuOverlay.hidden = false;
-// }
-
-// add function openContextMenu to shortcut, shortcut blank, group when right-clicking
-// document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", openContextMenu)));
-
-// CLOSE CONTEXT MENU
-function closeContextMenu() {
-    // hide context menu
-    contextMenu.hidden = true;
-    // hide contextmenuOverlay
-    contextmenuOverlay.hidden = true;
-    // reset target
-    resetTarget();
-}
-
-// add function closeContextMenu to contextmenuOverlay
-contextmenuOverlay.addEventListener('click', closeContextMenu);
+// add function getTarget to shortcut, shortcut editable, shortcut blank, group blank when left-clicking
+document.querySelectorAll(".shortcut, .editable-overlay, .group.blank").forEach(elem => (elem.addEventListener("click", getTarget)));
 
 
 // DIALOG
 
-
 // OPEN DIALOG
-function showDialogComponent() { // shortcut / shortcut blank / group blank / group
+function showDialogComponent() { // shortcut / shortcut editable / shortcut blank / group blank / group
     // shortcut
-    if (targetElementType == "shortcut") {
+    if (targetElementType == "shortcut editable") {
         // edit dialog name
         dialogName.textContent = "Edit Shortcut";
 
@@ -663,8 +690,8 @@ function showDialogComponent() { // shortcut / shortcut blank / group blank / gr
 
         // show shortcut component
         shortcutComponent.hidden = false;
-        shortcutNameInput.value = targetElement.children[1].textContent;
-        linkInput.value = targetElement.children[0].href;
+        shortcutNameInput.value = targetElement.children[3].textContent;
+        linkInput.value = formatInputLink(targetElement.children[1].href);
     }
 
     // shortcut blank
@@ -685,15 +712,15 @@ function showDialogComponent() { // shortcut / shortcut blank / group blank / gr
     }
 
     // group
-    else if (targetElementType == "group") {
+    else if (targetElementType == "group editable") {
         // edit dialog name
         dialogName.textContent = "Edit Group";
     
         // show group component
         groupComponent.hidden = false;
-        groupNameInput.value = targetElement.children[1].textContent;
-        groupBgInputColor.value = targetElement.children[1].getAttribute("style").slice(-7);
-        groupBgInputText.value = targetElement.children[1].getAttribute("style").slice(-7);
+        groupNameInput.value = targetElement.textContent;
+        groupBgInputColor.value = targetElement.getAttribute("style").slice(-7);
+        groupBgInputText.value = targetElement.getAttribute("style").slice(-7);
 
         // hide shortcut component
         shortcutComponent.hidden = true;
@@ -726,17 +753,14 @@ function openDialog() {
     dialog.hidden = false;
     // show dialogOverlay
     dialogOverlay.hidden = false;
-    // hide contextMenu
-    contextMenu.hidden = true;
-    // hide contextmenuOverlay
-    contextmenuOverlay.hidden = true;
+    console.log('dialogOverlay displayed');
 }
 
-// add function openDialog to editItem
-editItem.addEventListener('click', openDialog);
-
 // add function openDialog to shortcut blank, group blank when left-clicking
-document.querySelectorAll(".blank").forEach(elem => (elem.addEventListener("click", openDialog)));
+document.querySelectorAll(".blank:not(.editable):not(.deletable)").forEach(elem => (elem.addEventListener("click", openDialog)));
+
+// add function openDialog to editable shortcut, editable group when left-clicking
+document.querySelectorAll(".editable-overlay").forEach(elem => (elem.addEventListener("click", openDialog)));
 
 // CLOSE DIALOG
 function resetTarget() {
@@ -767,42 +791,17 @@ dialogOverlay.addEventListener('click', closeDialog);
 
 
 // DELETE GROUP AND SHORTCUT
-function deletegGroupAndShortcut() {
-    // delete element
-    confirmMessage = '';
-    if (targetElementType == "shortcut") {
-        confirmMessage = "Delete shortcut?"
-    }
-    else if (targetElementType == "shortcut blank") {
-        confirmMessage = "Delete blank shortcut?"
-    }
-    else {
-        confirmMessage = "Delete group and shortcuts inside?"
-    }
-
-    if (confirm(confirmMessage)) {
-        console.log('targetElement: ',targetElement);
-        elementToBeDeleted = targetElement;
-        console.log("elementToBeDeleted: ", elementToBeDeleted);
-        elementToBeDeleted.remove();
-        elementToBeDeleted = '';
-    }
-
-    // close context menu
-    closeContextMenu();
+function deleteGroupAndShortcut() {
+    elementToBeDeleted = targetElement;
+    elementToBeDeleted.remove();
 
     // update codes
     checkAndAddBlanks(); // already have updateCurrentCodes and convertRbgToHex
     rearrangeGroupIds();
 }
 
-// add function deletegGroupAndShortcut to deleteItem
-deleteItem.addEventListener('click', deletegGroupAndShortcut);
-
-
-
 // SAVE DIALOG
-
+// sync color format
 function syncColorInputs(inputChanged) {
     if (inputChanged == 'groupBgInputColor') {
         groupBgInputText.value = groupBgInputColor.value;
@@ -816,18 +815,25 @@ function syncColorInputs(inputChanged) {
 groupBgInputColor.addEventListener('input', () => {syncColorInputs('groupBgInputColor');});
 groupBgInputText.addEventListener('input', () => {syncColorInputs('groupBgInputText');});
 
+function formatInputLink(inputLink) {
+    if (!/^https?:\/\//i.test(inputLink)) { // check if the link input has "https://" at the beginning
+        inputLink = 'http://' + inputLink;
+    }
+    return inputLink;
+}
+
 function saveDialogChanges() {
     // update the changes
-    if (targetElementType == "shortcut") { // shortcut
-        targetElement.children[1].textContent = shortcutNameInput.value;
-        targetElement.children[0].href = linkInput.value;
+    if (targetElementType == "shortcut editable") { // shortcut editable
+        targetElement.children[3].textContent = shortcutNameInput.value;
+        targetElement.children[1].href = formatInputLink(linkInput.value);
     }
 
     else if (targetElementType == "shortcut blank") { // shortcut blank
         // remove icon
         targetElement.children[0].remove();
         // update link
-        targetElement.children[0].href = linkInput.value;
+        targetElement.children[0].href = formatInputLink(linkInput.value);
         // set title
         targetElement.children[0].title = shortcutNameInput.value
         // create icon
@@ -839,15 +845,14 @@ function saveDialogChanges() {
             url.searchParams.set("size", "32");
             return url.toString();
         }
-
         newIcon.src = faviconURL(linkInput.value)
-        newShortcut.appendChild(newIcon); // add a to shortcut
+        targetElement.appendChild(newIcon); // add a to shortcut
 
         // create shortcut-name
         newShortcutName = document.createElement('div');
         newShortcutName.classList.add("shortcut-name"); // add class
         newShortcutName.textContent = shortcutNameInput.value; // set textContent
-        targetElement.appendChild(newShortcutName); // add shorcut-name to targetElement zz
+        targetElement.appendChild(newShortcutName); // add shorcut-name to targetElement
         // update blank class
         targetElement.classList.remove("blank");
 
@@ -890,15 +895,14 @@ function saveDialogChanges() {
 
         // update blank class
         targetElement.classList.remove("blank");
-
     }
+
+    // remove all event listeners
+    targetElement.removeEventListener("click", openDialog);
+
     // update codes
     checkAndAddBlanks(); // already have updateCurrentCodes and convertRbgToHex
     rearrangeGroupIds();
-    // close dialog
-    closeDialog();
-    addAllEventListeners();
-    updateHeader();
     // make sortable
     $( function() {
         $( ".shortcut-container" ).sortable({
@@ -912,32 +916,25 @@ function saveDialogChanges() {
             }
         })
     } );
+    // close dialog
+    closeDialog();
+    addAllEventListeners();
+    updateHeader();
 }
-
 
 // add function saveDialogChanges to saveDialog
 saveDialog.addEventListener('click', saveDialogChanges);
 
-
 // ADD EVENT LISTENER
 function addAllEventListeners() {
-    // add function getTarget to shortcut, shortcut blank, group blank when left-clicking
-    document.querySelectorAll(".shortcut, .group.blank").forEach(elem => (elem.addEventListener("click", getTarget)));
-
-    // add function getTarget to shortcut, shortcut blank, group when right-clicking
-    document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", getTarget)));
-
-    // add function openContextMenu to shortcut, shortcut blank, group when right-clicking
-    // document.querySelectorAll(".shortcut, .group:not(.blank)").forEach(elem => (elem.addEventListener("contextmenu", openContextMenu)));
-
-    // add function closeContextMenu to contextmenuOverlay
-    contextmenuOverlay.addEventListener('click', closeContextMenu);
-
-    // add function openDialog to editItem
-    editItem.addEventListener('click', openDialog);
+    // add function getTarget to shortcut, shortcut editable, shortcut deletable, shortcut blank, group blank when left-clicking
+    document.querySelectorAll(".shortcut, .editable-overlay, .deletable-overlay, .group.blank").forEach(elem => (elem.addEventListener("click", getTarget)));
 
     // add function openDialog to shortcut blank, group blank when left-clicking
-    document.querySelectorAll(".blank").forEach(elem => (elem.addEventListener("click", openDialog)));
+    document.querySelectorAll(".blank:not(.editable):not(.deletable)").forEach(elem => (elem.addEventListener("click", openDialog)));
+
+    // add function openDialog to editable shortcut, editable group when left-clicking
+    document.querySelectorAll(".editable-overlay").forEach(elem => (elem.addEventListener("click", openDialog)));
 
     // add function closeDialog to cancelDialog
     cancelDialog.addEventListener('click', closeDialog);
@@ -945,8 +942,8 @@ function addAllEventListeners() {
     // add function closeDialog to dialogOverlay
     dialogOverlay.addEventListener('click', closeDialog);
 
-    // add function deletegGroupAndShortcut to deleteItem
-    deleteItem.addEventListener('click', deletegGroupAndShortcut);
+    // add function deleteGroupAndShortcut to deletable overlay
+    document.querySelectorAll(".deletable-overlay").forEach(elem => (elem.addEventListener("click", deleteGroupAndShortcut)));
 
     // add function syncColorInputs to groupBgInputColor, groupBgInputText
     groupBgInputColor.addEventListener('input', () => {syncColorInputs('groupBgInputColor');});

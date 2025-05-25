@@ -1,5 +1,16 @@
 @import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css);
 
+:root {
+    --button-active-green: #93f8a4;
+    --button-hover-green: #67e67c;
+    --editable-blue: #b7d8f3;
+    --editable-active-blue: #85b6df;
+    --editable-hover-blue: #67a8dd;
+    --deletable-red: #f7c3ce;
+    --deletable-active-red: #fc87a1;
+    --deletable-hover-red: #ff5e81;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -46,15 +57,15 @@ button {
     cursor: pointer;
 }
 
-button:hover, button.enabled {
-    background-color: #f36584;
+button:hover {
+    background-color: var(--button-hover-green);
 }
 
 button:active {
-    background-color: #fa95ab;
+    background-color: var(--button-active-green);
 }
 
-button:disabled {
+button:disabled, #editBtn:disabled:hover, #deleteBtn:disabled:hover {
     background-color: lightgrey;
     cursor: default;
 }
@@ -63,6 +74,23 @@ button:disabled:hover {
     background-color: lightgrey;
     cursor: default;
 }
+
+#editBtn:hover, #editBtn.activated {
+    background-color: var(--editable-hover-blue);
+}
+
+#editBtn:active {
+    background-color: var(--editable-active-blue);
+}
+
+#deleteBtn:hover, #deleteBtn.activated {
+    background-color: var(--deletable-hover-red);
+}
+
+#deleteBtn:active {
+    background-color: var(--deletable-active-red);
+}
+
 
 #main {
     height: 97vh;
@@ -75,7 +103,6 @@ button:disabled:hover {
     justify-content: left;
     width: calc(88vw + 10vh + 1.5vw);
     margin-left: calc((100vw - 88vw - 10vh - 1.5vw)/2 - (1.5vw)/2);
-    /* border: 1px green solid; */
 }
 
 .group-name {
@@ -128,7 +155,6 @@ button:disabled:hover {
     background-color: lightgray;
 }
 
-
 .shortcut-edit {
     z-index: 3;
     height: 8.2vh;
@@ -143,6 +169,13 @@ a {
     width: 8vw;
     position: absolute;
     z-index: 2;
+}
+
+.editable-overlay, .deletable-overlay {
+    height: 8.2vh;
+    width: 8vw;
+    position: absolute;
+    z-index: 3;
 }
 
 .shortcut-name {
@@ -199,6 +232,13 @@ a {
 .handle:hover {
     color: black;
     background-color: #f36584;
+    cursor: grab;
+}
+
+.handle:active {
+    color: black;
+    background-color: #f36584;
+    cursor: grabbing;
 }
 
 #context-menu {
@@ -308,4 +348,63 @@ a {
 
 .shortcut.blank.target {
     background-color: lightgray;
+}
+
+
+.editable {
+    background-color: var(--editable-blue);
+}
+
+.editable:hover {
+    background-color: var(--editable-hover-blue);
+}
+
+.editable:active {
+    background-color: var(--editable-active-blue);
+}
+
+.group-name.editable {
+    background-color: var(--editable-blue) !important;
+}
+
+.group-name.editable:hover {
+    background-color: var(--editable-hover-blue) !important;
+}
+
+.group-name.editable:active {
+    background-color: var(--editable-active-blue) !important;
+}
+
+
+.group-name.editable:hover, .editable-overlay:hover {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>') 0 32, auto;
+}
+
+
+.deletable {
+    background-color: var(--deletable-red);
+}
+
+.deletable:hover {
+    background-color: var(--deletable-hover-red);
+}
+
+.deletable:active {
+    background-color: var(--deletable-active-red);
+}
+
+.group-name.deletable {
+    background-color: var(--deletable-red) !important;
+}
+
+.group-name.deletable:hover {
+    background-color: var(--deletable-hover-red) !important;
+}
+
+.group-name.deletable:active {
+    background-color: var(--deletable-active-red) !important;
+}
+
+.group-name.deletable:hover, .deletable-overlay:hover {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M290.7 57.4L57.4 290.7c-25 25-25 65.5 0 90.5l80 80c12 12 28.3 18.7 45.3 18.7L288 480l9.4 0L512 480c17.7 0 32-14.3 32-32s-14.3-32-32-32l-124.1 0L518.6 285.3c25-25 25-65.5 0-90.5L381.3 57.4c-25-25-65.5-25-90.5 0zM297.4 416l-9.4 0-105.4 0-80-80L227.3 211.3 364.7 348.7 297.4 416z"/></svg>') 0 32, auto;
 }
