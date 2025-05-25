@@ -515,6 +515,9 @@ editButton.addEventListener('click', () => {
 
             elementToRemoveEdit.removeChild(elementToRemoveEdit.firstChild);
         }
+        // remove all event listeners
+        document.querySelectorAll('.group, .shortcut, .editable').forEach(elem => elem.removeEventListener('click', openDialog));
+        // targetElement.removeEventListener("click", openDialog);
         addAllEventListeners();
     }
     // if deactivated
@@ -855,11 +858,11 @@ function saveDialogChanges() {
         targetElement.appendChild(newShortcutName); // add shorcut-name to targetElement
         // update blank class
         targetElement.classList.remove("blank");
-
     }
-    else if (targetElementType == "group") { // group
-        targetElement.children[1].textContent = groupNameInput.value;
-        targetElement.children[1].setAttribute("style", `background-color: ${groupBgInputColor.value}`);
+    else if (targetElementType == "group editable") { // group editable
+        targetElement.innerHTML = `<div class="editable-overlay"></div>${groupNameInput.value}`;
+        targetElement.setAttribute("style", `background-color: ${groupBgInputColor.value}`);
+
     }
     else if (targetElementType == "group blank") { // group blank
         // remove icon
@@ -896,9 +899,6 @@ function saveDialogChanges() {
         // update blank class
         targetElement.classList.remove("blank");
     }
-
-    // remove all event listeners
-    targetElement.removeEventListener("click", openDialog);
 
     // update codes
     checkAndAddBlanks(); // already have updateCurrentCodes and convertRbgToHex
