@@ -1,5 +1,6 @@
 // VARIABLE INITIALIZATION
 let pasteButton = document.querySelector("#pasteBtn");
+let sheetButton = document.querySelector("#sheetBtn");
 let copyButton = document.querySelector("#copyBtn");
 let downloadButton = document.querySelector("#downloadBtn");
 let clearButton = document.querySelector("#clearBtn");
@@ -43,9 +44,7 @@ function invokeUploadInput() {
 
 function uploadFile(event) {
     // only get the first file
-    console.log(event);
     const file = event.target.files[0];
-    console.log('x');
 
     if (file) {
         const reader = new FileReader();
@@ -64,6 +63,9 @@ function uploadFile(event) {
             shortcutDataTime = now.toLocaleString('vi-VN');
             localStorage.setItem('shortcut_data_time', shortcutDataTime);
 
+            // set dataType
+            localStorage.setItem('data_type', 'static');
+
             // create shortcuts based on data stored
             createShortcut();
 
@@ -78,6 +80,7 @@ function uploadFile(event) {
 
             // add all event listeners
             addAllEventListeners();
+
         };
         reader.readAsArrayBuffer(file); // Read the file as an array buffer
 
@@ -108,6 +111,10 @@ clearButton.addEventListener('click', () => {
         localStorage.removeItem('shortcut_data');
         // clear shortcut data store time
         localStorage.removeItem('shortcut_data_time');
+        // clear dataType
+        localStorage.removeItem('data_type');
+        // clear sheet info
+        localStorage.removeItem('sheet_info');
         // update header buttons
         updateHeader();
         // restore default html
@@ -235,6 +242,11 @@ function updateCurrentCodes() {
 pasteButton.addEventListener('click', () => {
     codes = prompt('Paste your codes here:');
     if (codes && codes != "null" && codes != null) {
+        // delete gg sheets data
+        storedSheetInfo = localStorage.getItem('sheet_info');
+        if (storedSheetInfo) {
+            localStorage.removeItem('sheet_info');
+        };
         // store data
         localStorage.setItem('shortcut_data', codes);
         // update data info
@@ -255,11 +267,80 @@ pasteButton.addEventListener('click', () => {
     }
 });
 
+
+// GET DATA FROM GG SHEETS
+function storeDataFromSheet() {
+    url = localStorage.getItem('sheet_info');
+
+    let sheetDataObjects;
+    async function fetchGoogleSheetData() {
+        const response = await fetch(url);
+        const sheetData = await response.json();
+        const sheetDataJson = sheetData.values
+        // console.log(sheetDataJson)
+        const headers = sheetDataJson[0];
+        // Map through the remaining rows to create an array of objects
+        sheetDataObjects = sheetDataJson.slice(1).map(row => {
+            return headers.reduce((obj, header, index) => {
+                obj[header] = row[index]; // Assign value to header key
+                return obj;
+            }, {});
+        });
+        // console.log(sheetDataObjects);
+        localStorage.setItem('shortcut_data', JSON.stringify(sheetDataObjects));
+    }
+
+    // store data to dataObjects
+    fetchGoogleSheetData().then();
+};
+
+sheetButton.addEventListener('click', () => {
+        // enter information for the url
+        sheetId = prompt('Paste the ID of your GG Sheets here:');
+        sheetName = encodeURIComponent(prompt('Paste the Sheet Name that contains data here:'));
+        apiKey = prompt('Paste the apiKey here:'); // AIzaSyCE5A1PoTy5qYMLXCPz0xMWhg4DsOXroDk
+        if (sheetId && sheetName && apiKey) {
+            url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
+            localStorage.setItem('sheet_info', url);
+        };
+
+        storeDataFromSheet();
+
+        // update data info
+        now = new Date();
+        shortcutDataTime = now.toLocaleString('vi-VN');
+        localStorage.setItem('shortcut_data_time', shortcutDataTime);
+
+        // set dataType
+        localStorage.setItem('data_type', 'dynamic');
+
+        // create shortcuts
+        createShortcut();
+
+        // check and add blank shortcuts
+        checkAndAddBlanks();
+
+        // rearrange group ids
+        rearrangeGroupIds();
+
+        // update header button
+        updateHeader();
+    }
+);
+
 // FUNCTION TO CREATE SHORTCUTS
 function createShortcut() {
-    storedCodes = localStorage.getItem('shortcut_data');
+    let storedCodes = localStorage.getItem('shortcut_data');
+    
+    // if overriding static data, need refreshing because the function storeDataFromSheet() is async and needs time to update
+    // this betters the experience because we don't have to wait for it to fetch data everytime
+    if (localStorage.getItem('data_type') === 'dynamic') {
+        storeDataFromSheet();
+        storedCodes = localStorage.getItem('shortcut_data');
+    }
+
     if (storedCodes) {
-        storedCodesJson = JSON.parse(localStorage.getItem('shortcut_data'));
+        let storedCodesJson = JSON.parse(storedCodes);
         // delete all current elements in main
         mainDiv = document.getElementById('main');
         while (mainDiv.firstChild) {
